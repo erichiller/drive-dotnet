@@ -164,7 +164,8 @@ namespace drive_dotnet {
             var exported_file = await service.Files.Export( fileId, odsMimeType ).ExecuteAsStreamAsync();
 
             // service.Files.Get(fileId).MediaDownloader.DownloadAsync(
-            using var f = File.OpenWrite( Path.Join( outputBasePath ?? "", $"{file.Name}.ods" ) );
+            using var f = File.Open( Path.Join( outputBasePath ?? "", $"{file.Name}.ods" ), FileMode.Create );
+            
             await exported_file.CopyToAsync( f );
             await f.FlushAsync();
             f.Close();
