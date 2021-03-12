@@ -37,11 +37,32 @@ namespace drive_dotnet {
         static void Main( string[] args ) {
             Console.WriteLine( "Google Drive API" );
             Console.WriteLine( "====================" );
+            // arg 0: file name to download
+            // arg 1: path to download to
+            // arg 2: credentials file
             foreach ( var arg in args ) {
                 Console.WriteLine( $"arg: {arg}" );
             }
+            var fileName = String.Empty;                    // arg[0]
+            var outputPath = String.Empty;                  // arg[1]
+            var credentialsFile = ".credentials.json";      // arg[2]
+            if (args.Length == 0){
+                Console.WriteLine( "no filename detected" );
+                return;
+            } else {
+                fileName = args[ 0 ];
+                Console.WriteLine($"Looking for {fileName}");
+            }
+            if( args.Length > 1 ){
+                outputPath = args[1];
+                Console.WriteLine( $"Will output to {outputPath}");
+            }
+            if ( args.Length > 2 ){
+                credentialsFile = args[2];
+                Console.WriteLine($"Using credentials in Path {credentialsFile}");
+            }
             try {
-                var actions = new DriveActions();
+                var actions = new DriveActions( credentialsFile );
                 // actions.GetDrives().Wait();
                 // actions.GetFiles();
                 // actions.GetAbout();
@@ -49,7 +70,7 @@ namespace drive_dotnet {
                 // actions.GetSpreadsheetAsOds("1fmOLsbB_yQgFcYlBeeAqxv0-72O5WEy4kRRjdDhVpr0").Wait();
 
                 // actions.GetSpreadsheetAsOdsByName( "macd" ).Wait();
-                actions.GetSpreadsheetAsOdsByName( args[ 0 ] ).Wait();
+                actions.GetSpreadsheetAsOdsByName( fileName: fileName, outputPath ).Wait();
 
             } catch ( AggregateException ex ) {
                 foreach ( var e in ex.InnerExceptions ) {
@@ -67,8 +88,9 @@ namespace drive_dotnet {
         public GoogleCredential credential {
             get {
 
-                string exeDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? throw new DirectoryNotFoundException("Unable to locate the ExecutingAssembly's location, configuration failed.");
-                string accessCredentialsPath = Path.Join(exeDir, ".credentials.json");
+                // string exeDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? throw new DirectoryNotFoundException("Unable to locate the ExecutingAssembly's location, configuration failed.");
+                // string accessCredentialsPath = Path.Join(exeDir, this.credentialsFile);
+                string accessCredentialsPath = this.credentialsFile;
                 if ( !System.IO.File.Exists( accessCredentialsPath ) ) {
                     throw new Exception( $"ERROR: file at {accessCredentialsPath} does not exist!" );
                 }
@@ -87,8 +109,11 @@ namespace drive_dotnet {
                                 } );
             }
         }
+        private string credentialsFile;
 
-        public DriveActions( ) {
+        public DriveActions( string credentialsFile) {
+            this.credentialsFile = credentialsFile;
+            Console.WriteLine($"Using credentials at {this.credentialsFile}");
             service = new DriveService( new BaseClientService.Initializer {
                 ApplicationName = "dotnet-drive",
                 HttpClientInitializer = credential,
@@ -139,7 +164,7 @@ namespace drive_dotnet {
             var exported_file = await service.Files.Export( fileId, odsMimeType ).ExecuteAsStreamAsync();
 
             // service.Files.Get(fileId).MediaDownloader.DownloadAsync(
-            using var f = File.OpenWrite( $"{file.Name}.ods" );
+            using var f = File.OpenWrite( Path.Join( outputBasePath ?? "", $"{file.Name}.ods" ) );
             await exported_file.CopyToAsync( f );
             await f.FlushAsync();
             f.Close();

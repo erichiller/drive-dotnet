@@ -6,6 +6,12 @@
         <LangVersion>9.0</LangVersion>
         <Nullable>enable</Nullable>
         <RootNamespace>drive_dotnet</RootNamespace>
+    <!-- <PublishSingleFile>true</PublishSingleFile> -->
+    <!-- <SelfContained>true</SelfContained> -->
+    <!-- <RuntimeIdentifier>win-x64</RuntimeIdentifier> -->
+    <!-- <PublishTrimmed>true</PublishTrimmed> -->
+    <!-- <PublishReadyToRun>true</PublishReadyToRun> -->
+    <!-- <PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings> -->
     </PropertyGroup>
 
   <ItemGroup>
